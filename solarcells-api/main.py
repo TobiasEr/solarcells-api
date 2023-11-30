@@ -1,13 +1,19 @@
 from fastapi import FastAPI
+from routers import router as panels_router
+from database import connect_to_db, close_db_connection
+
 
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+@app.on_event("startup")
+async def startup_db_client():
+    await connect_to_db()
 
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    await close_db_connection()
+
+
+app.include_router(panels_router, tags=["panels"], prefix="/solar-panels")
