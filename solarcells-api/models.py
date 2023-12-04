@@ -1,9 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, BeforeValidator
 from fmiweather import WeatherModel
 from datetime import datetime
+from typing import Optional, Annotated
+
+
+PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class Panel(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
     panelID: int = Field(..., alias="panelID")
     vertical_angle: int = Field(..., alias="vertical_angle")
     horizontal_angle: int = Field(..., alias="horizontal_angle")
@@ -17,6 +22,7 @@ class Metadata(BaseModel):
 
 
 class PanelLog(BaseModel):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
     timestamp: datetime = Field(..., alias="timestamp")
     metadata: Metadata = Field(..., alias="metadata")
 
