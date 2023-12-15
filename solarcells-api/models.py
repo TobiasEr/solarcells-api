@@ -32,14 +32,19 @@ class CreateLogModel(BaseModel):
 
 
 class TempSensorData(BaseModel):
-    tempsensorID: int = Field(..., alias="tempsensorID")
-    sensor_timestamp: datetime = Field(..., alias="sensor_timestamp")
+    # sensor_timestamp: datetime = Field(..., alias="sensor_timestamp")
     temperature: float = Field(..., alias="temperature")
     humidity: float = Field(..., alias="humidity")
     pressure: Optional[float] = Field(alias="pressure", default=None)
 
 
+class TemperatureSensor(BaseModel):
+    tempsensor_ID: int = Field(..., alias="tempsensor_ID"),
+    sensor_location: str = Field(..., alias="sensor_location")
+
+
 class TempSensorLog(BaseModel):
     timestamp: datetime = Field(..., alias="timestamp")
+    sensor: TemperatureSensor = Field(..., alias="sensor")
     sensordata: TempSensorData = Field(..., alias="sensordata")
     weather: WeatherModel = Field(..., alias="weather")
