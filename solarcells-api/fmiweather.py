@@ -5,7 +5,7 @@ import pytz
 
 
 class WeatherModel(BaseModel):
-    weather_time: dt.datetime
+    # weather_time: dt.datetime
     air_temperature: float
     wind_speed: float
     wind_direction: float
@@ -27,7 +27,7 @@ def get_latest_weather():
     latest_airport_weather = observations.data[sorted(observations.data.keys())[-1]]['Jomala Maarianhamina lentoasema']
 
     weather = WeatherModel(
-        weather_time=sorted(observations.data.keys())[-1] + dt.timedelta(minutes=120),
+        # weather_time=sorted(observations.data.keys())[-1] + dt.timedelta(minutes=120),
         air_temperature=latest_airport_weather['Air temperature']['value'],
         wind_speed=latest_airport_weather['Wind speed']['value'],
         wind_direction=latest_airport_weather['Wind direction']['value'],
