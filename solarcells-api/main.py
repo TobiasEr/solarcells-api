@@ -17,5 +17,5 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-app.include_router(panels_router, tags=["panels"], prefix="/solar-panels")
+# app.include_router(panels_router, tags=["panels"], prefix="/solar-panels")
 app.include_router(vrm_router, tags=["temp-sensor"], prefix="/temp-sensors")
