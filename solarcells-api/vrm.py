@@ -11,7 +11,7 @@ import csv
 from io import StringIO
 
 from database import get_tempsensordata_collection, save_temp_log_to_database, get_tempsensors_collection
-from models import TempSensorData, TempSensorLog
+from models import TempSensorData, TempSensorLog, TemperatureSensor
 
 router = APIRouter()
 sensor_scheduler = AsyncIOScheduler()
@@ -19,7 +19,7 @@ sensor_scheduler_started = False
 
 
 @router.get("/{temp_sensor_id}/logs", response_model=List[TempSensorLog], status_code=HTTPStatus.OK)
-async def get_temp_sensor_data(
+async def get_temp_sensor_logs(
         temp_sensor_id: int,
         start: str | None = None,
         end: str | None = None,
@@ -118,3 +118,42 @@ async def stop_sensor_logging():
     await stop_scheduler()
     sensor_scheduler_started = False
     return {"message": "Temperature sensor logger shutdown"}
+
+
+@router.get('/{temp_sensor_id}', response_model=TemperatureSensor)
+async def get_sensor(
+        temp_sensor_id: int,
+        tempsensors_collection=Depends(get_tempsensors_collection)
+):
+    temp_sensor = await tempsensors_collection.find_one({"tempsensor_ID": temp_sensor_id})
+    if temp_sensor:
+        return temp_sensor
+    raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"Temperature sensor with ID {temp_sensor_id} not found")
+
+
+@router.post("", response_model=TemperatureSensor, status_code=HTTPStatus.CREATED)
+async def create_sensor(temp_sensor: TemperatureSensor, tempsensors_collection=Depends(get_tempsensors_collection)):
+    if await tempsensors_collection.count_documents({"tempsensor_ID": temp_sensor.tempsensor_ID}) > 0:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=f"Panel with ID {temp_sensor.tempsensor_ID} already exists.")
+    new_sensor = await tempsensors_collection.insert_one(temp_sensor.model_dump())
+    created_sensor = await tempsensors_collection.find_one({"_id": new_sensor.inserted_id})
+    return created_sensor
+
+
+@router.get("", response_model=List[TemperatureSensor])
+async def get_all_sensors(tempsensors_collection=Depends(get_tempsensors_collection)):
+    return await tempsensors_collection.find().to_list(1000)
+
+
+@router.delete("/{temp_sensor_id}", status_code=HTTPStatus.NO_CONTENT)
+async def delete_sensor(
+        temp_sensor_id: int,
+        tempsensors_collection=Depends(get_tempsensors_collection)
+):
+    temp_sensor = await tempsensors_collection.find_one({"tempsensor_ID": temp_sensor_id})
+    if not temp_sensor:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
+                            detail=f"Temperature sensor with ID {temp_sensor_id} not found")
+    await tempsensors_collection.delete_one({"tempsensor_ID": temp_sensor_id})
